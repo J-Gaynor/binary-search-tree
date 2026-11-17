@@ -84,6 +84,123 @@ class Tree {
 
         return current;
     }
+
+    levelOrderForEach(callback) {
+        if (this.root === null) return;
+        if (typeof callback !== "function") {
+            throw new Error("Callback function required");
+        }
+        let queue = [];
+        queue.push(this.root);
+        while (queue.length > 0) {
+            const current = queue.shift();
+            callback(current.data);
+            if (current.left) {
+                queue.push(current.left);
+            }
+            if (current.right) {
+                queue.push(current.right);
+            }
+        }
+    }
+
+    inOrderForEach(callback, current = this.root) {
+        if (current === null) return;
+        if (typeof callback !== "function") {
+            throw new Error("Callback function required");
+        }
+        if (current.left) {
+            this.inOrderForEach(callback, current.left);
+        }
+        callback(current.data);
+        if (current.right) {
+            this.inOrderForEach(callback, current.right);
+        }
+    }
+
+    preOrderForEach(callback, current = this.root) {
+        if (current === null) return;
+        if (typeof callback !== "function") {
+            throw new Error("Callback function required");
+        }
+        callback(current.data);
+        if (current.left) {
+            this.preOrderForEach(callback, current.left);
+        }
+        if (current.right) {
+            this.preOrderForEach(callback, current.right);
+        }
+    }
+
+    postOrderForEach(callback, current = this.root) {
+        if (current === null) return;
+        if (typeof callback !== "function") {
+            throw new Error("Callback function required");
+        }
+        if (current.left) {
+            this.postOrderForEach(callback, current.left);
+        }
+        if (current.right) {
+            this.postOrderForEach(callback, current.right);
+        }
+        callback(current.data);
+    }
+
+    height(value, current = this.root) {
+        if (current === null) {
+            return undefined;
+        }
+        if (value < current.data) {
+            return this.height(value, current.left);
+        }
+        if (value > current.data) {
+            return this.height(value, current.right);
+        }
+        if (current.data === value) {
+            return this.#calculateHeight(current);
+        }
+    }
+
+    depth(value, current = this.root, count = 0) {
+        if (current === null) {
+            return undefined;
+        }
+        if (current.data === value) {
+            return count;
+        }
+        count++;
+        if (value < current.data) {
+            return this.depth(value, current.left, count);
+        }
+        if (value > current.data) {
+            return this.depth(value, current.right, count);
+        }
+    }
+
+    isBalanced(current = this.root) {
+        if (current === null) return true;
+        const leftHeight = this.#calculateHeight(current.left);
+        const rightHeight = this.#calculateHeight(current.right);
+        if (Math.abs(leftHeight - rightHeight) > 1) {
+            return false;
+        }
+        return this.isBalanced(current.left) && this.isBalanced(current.right);
+    }
+
+    rebalance() {
+        const sortedValues = [];
+        this.inOrderForEach((val) => sortedValues.push(val));
+        this.root = this.#buildTree(sortedValues);
+    }
+
+    #calculateHeight(node) {
+        if (node === null) return -1;
+
+        const leftHeight = this.#calculateHeight(node.left);
+        const rightHeight = this.#calculateHeight(node.right);
+
+        return 1 + Math.max(leftHeight, rightHeight);
+    }
 }
 
 
@@ -99,11 +216,29 @@ const prettyPrint = (node, prefix = '', isLeft = true) => {
 
 const tree = new Tree([1, 7, 4, 23, 8, 9, 3, 5]);
 prettyPrint(tree.root);
+
 console.log(tree.includes(9));
 console.log(tree.includes(90));
+
 tree.insert(100);
 prettyPrint(tree.root);
+
 tree.deleteItem(100);
 tree.deleteItem(4);
 tree.deleteItem(7);
+prettyPrint(tree.root);
+
+tree.levelOrderForEach((val) => console.log(val));
+tree.inOrderForEach((val) => console.log(val));
+tree.preOrderForEach((val) => console.log(val));
+tree.postOrderForEach((val) => console.log(val));
+
+console.log(tree.height(23));
+console.log(tree.height(8));
+console.log(tree.depth(8));
+console.log(tree.depth(9));
+
+console.log("Is balanced before rebalance:", tree.isBalanced());
+tree.rebalance();
+console.log("Is balanced after rebalance:", tree.isBalanced());
 prettyPrint(tree.root);
